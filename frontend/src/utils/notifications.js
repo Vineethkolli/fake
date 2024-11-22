@@ -7,7 +7,7 @@ export async function subscribeToPushNotifications() {
     }
 
     // Get VAPID public key from server
-    const response = await fetch('http://localhost:5000/api/notifications/vapidPublicKey');
+    const response = await fetch('https://fake-red.vercel.app/api/notifications/vapidPublicKey');
     const { publicKey } = await response.json();
 
     // Register service worker
@@ -20,7 +20,7 @@ export async function subscribeToPushNotifications() {
     });
 
     // Send subscription to server
-    await fetch('http://localhost:5000/api/notifications/subscribe', {
+    await fetch('https://fake-red.vercel.app/api/notifications/subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

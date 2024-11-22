@@ -19,7 +19,7 @@ function Notifier() {
 
   const fetchNotifications = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/notifications');
+      const { data } = await axios.get('https://fake-red.vercel.app/api/notifications');
       setNotifications(data);
     } catch (error) {
       toast.error('Failed to fetch notifications');
@@ -29,7 +29,7 @@ function Notifier() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/notifications/send', notification);
+      await axios.post('https://fake-red.vercel.app/api/notifications/send', notification);
       toast.success('Notification sent successfully');
       setNotification({ title: '', body: '', userId: '' });
       fetchNotifications();
@@ -40,7 +40,7 @@ function Notifier() {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.post(`http://localhost:5000/api/notifications/${notificationId}/read`);
+      await axios.post(`https://fake-red.vercel.app/api/notifications/${notificationId}/read`);
       fetchNotifications();
     } catch (error) {
       toast.error('Failed to mark notification as read');

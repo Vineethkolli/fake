@@ -37,7 +37,7 @@ function Settings() {
 
   const checkNotificationStatus = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/notifications/status');
+      const { data } = await axios.get('https://fake-red.vercel.app/api/notifications/status');
       setNotificationsEnabled(data.enabled);
     } catch (error) {
       console.error('Failed to check notification status:', error);
@@ -47,7 +47,7 @@ function Settings() {
   const toggleNotifications = async () => {
     try {
       if (notificationsEnabled) {
-        await axios.post('http://localhost:5000/api/notifications/unsubscribe');
+        await axios.post('https://fake-red.vercel.app/api/notifications/unsubscribe');
         setNotificationsEnabled(false);
         toast.success('Notifications disabled');
       } else {

@@ -41,7 +41,7 @@ function Profile() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.patch('http://localhost:5000/api/users/profile', userData);
+      const { data } = await axios.patch('https://fake-red.vercel.app/api/users/profile', userData);
       updateUserData(data); // Update global state
       toast.success('Profile updated successfully');
       setIsEditing(false);
@@ -64,7 +64,7 @@ function Profile() {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/auth/change-password', {
+      await axios.post('https://fake-red.vercel.app/api/auth/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });

@@ -20,7 +20,7 @@ function PayOnline() {
 
   const fetchPaymentHistory = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/payments/history');
+      const { data } = await axios.get('https://fake-red.vercel.app/api/payments/history');
       setPaymentHistory(data);
     } catch (error) {
       toast.error('Failed to fetch payment history');
@@ -38,7 +38,7 @@ function PayOnline() {
     }
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/payments/initiate', paymentData);
+      const { data } = await axios.post('https://fake-red.vercel.app/api/payments/initiate', paymentData);
       
       // Create form and submit to Paytm
       const form = document.createElement('form');

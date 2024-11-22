@@ -15,7 +15,7 @@ function Users() {
 
   const fetchUsers = async () => {
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/users${search ? `?search=${search}` : ''}`);
+      const { data } = await axios.get(`https://fake-red.vercel.app/api/users${search ? `?search=${search}` : ''}`);
       setUsers(data);
     } catch (error) {
       toast.error('Failed to fetch users');
@@ -24,7 +24,7 @@ function Users() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      await axios.patch(`http://localhost:5000/api/users/${userId}/role`, {
+      await axios.patch(`https://fake-red.vercel.app/api/users/${userId}/role`, {
         role: newRole
       });
       toast.success('Role updated successfully');
@@ -38,7 +38,7 @@ function Users() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userId}`);
+      await axios.delete(`https://fake-red.vercel.app/api/users/${userId}`);
       toast.success('User deleted successfully');
       fetchUsers();
     } catch (error) {
