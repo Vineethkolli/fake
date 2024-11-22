@@ -7,9 +7,17 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      host: true, // Enable access from all network interfaces
-      port: 3000, // Set a default port
-      open: true // Automatically open the app in the browser
+      host: true, // Allow access from all network interfaces
+      port: 3000, // Set default port
+      open: true, // Automatically open the app in the browser
+      proxy: {
+        // Proxy API requests during development
+        '/api': {
+          target: 'https://fake-red.vercel.app', // Replace with your backend URL
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, '') // Optional: rewrite paths
+        }
+      }
     },
     plugins: [
       react(),
@@ -44,19 +52,34 @@ export default defineConfig(({ mode }) => {
           ]
         },
         devOptions: {
-          enabled: isDevelopment,
+          enabled: isDevelopment, // Enable PWA dev tools in development mode
           type: 'module',
           navigateFallback: 'index.html',
           navigateFallbackDenylist: [
-            /^\/api\//, // Prevent fallback for API routes
-            /^\/admin\// // Prevent fallback for admin routes
+            /^\/api\//, // Exclude API routes from fallback
+            /^\/admin\// // Exclude admin routes from fallback
           ]
         }
       })
     ],
     build: {
-      outDir: 'dist', // Build output directory
-      sourcemap: isDevelopment // Generate source maps in development
+      outDir: 'dist', // Output directory for the build
+      sourcemap: isDevelopment, // Enable source maps only in development
+      rollupOptions: {
+        // Additional optimizations or overrides
+        output: {
+          manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              return id.toString().split('node_modules/')[1].split('/')[0].toString();
+            }
+          }
+        }
+      }
+    },
+    envPrefix: ['VITE_'], // Prefix for environment variables
+    define: {
+      // Define global constants for the app
+      __APP_ENV__: JSON.stringify(mode)
     }
   };
 });

@@ -13,13 +13,20 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors(
-  {
-    origin:["https://frontend-tau-ashy.vercel.app/"],
-    methods: ["POST","GET"],
-    credentials: true
-  }
-));
+import cors from 'cors';
+
+const corsOptions = {
+  origin: ['https://frontend-tau-ashy.vercel.app'], // Allow specific frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true // Allow cookies if needed
+};
+
+app.use(cors(corsOptions));
+
+// Ensure preflight requests are handled
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 // Routes
