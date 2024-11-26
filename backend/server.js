@@ -1,4 +1,3 @@
-// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -19,43 +18,35 @@ import { createDefaultDeveloper } from './utils/setupDefaults.js';
 
 dotenv.config();
 
-// Initialize Express app and HTTP server
 const app = express();
 const httpServer = createServer(app);
 
-// Configure Socket.IO with CORS
+// Socket.IO setup with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: 'https://frontend-tau-ashy.vercel.app',
-    methods: ['GET', 'POST'],
-  },
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_URL
+      : "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
 });
 
-// Generate or configure VAPID keys for web push notifications
-if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-  const vapidKeys = webpush.generateVAPIDKeys();
-  webpush.setVapidDetails(
-    'mailto:example@yourdomain.com',
-    vapidKeys.publicKey,
-    vapidKeys.privateKey
-  );
-  console.log('Generated VAPID keys:', vapidKeys);
-} else {
-  webpush.setVapidDetails(
-    'mailto:example@yourdomain.com',
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
-}
+// Generate VAPID keys for web push notifications
+const vapidKeys = webpush.generateVAPIDKeys();
 
-// Middleware setup
-app.use(
-  cors({
-    origin: 'https://frontend-tau-ashy.vercel.app',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  })
+webpush.setVapidDetails(
+  'mailto:example@yourdomain.com',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
 );
+
+// Middleware
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -64,17 +55,8 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('join', (userId) => {
-    if (userId) {
-      socket.join(userId);
-      console.log(`User ${userId} joined their room`);
-    }
-  });
-
-  socket.on('leave', (userId) => {
-    if (userId) {
-      socket.leave(userId);
-      console.log(`User ${userId} left their room`);
-    }
+    socket.join(userId);
+    console.log(`User ${userId} joined their room`);
   });
 
   socket.on('disconnect', () => {
@@ -82,11 +64,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// Attach Socket.IO instance to the app for use in routes
+// Make io available in routes
 app.set('io', io);
 
-// Define routes
-app.use('/api/auth', authRoutes); // This mounts authRoutes under /auth
+// Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
@@ -98,23 +80,20 @@ app.use('/api/developer', developerRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
-  res.json({ status: 'API is running', time: new Date() });
+  res.json({ status: 'API is running' });
 });
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     createDefaultDeveloper();
   })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit the process if the database connection fails
-  });
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+const PORT = process.env.PORT || 5000;
 
 // Start the server
-const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
