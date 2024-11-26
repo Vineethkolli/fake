@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
       const { data } = await axios.get(`${API_URL}/api/users/profile`);
       setUser(data);
     } catch (error) {
+      console.error('Failed to fetch profile:', error);
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
     } finally {
@@ -33,27 +34,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUserData = (newData) => {
-    setUser(prevUser => ({
+    setUser((prevUser) => ({
       ...prevUser,
-      ...newData
+      ...newData,
     }));
   };
 
   const signin = async (identifier, password) => {
-    const { data } = await axios.post(`${API_URL}/api/auth/signin`, {
-      identifier,
-      password
-    });
-    localStorage.setItem('token', data.token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-    setUser(data.user);
+    try {
+      const { data } = await axios.post(`${API_URL}/api/auth/signin`, {
+        identifier,
+        password,
+      });
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      setUser(data.user);
+    } catch (error) {
+      console.error('Signin failed:', error);
+      throw error; // Pass the error back to the caller
+    }
   };
 
   const signup = async (userData) => {
-    const { data } = await axios.post(`${API_URL}/api/auth/signup`, userData);
-    localStorage.setItem('token', data.token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-    setUser(data.user);
+    try {
+      const { data } = await axios.post(`${API_URL}/api/auth/signup`, userData);
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      setUser(data.user);
+    } catch (error) {
+      console.error('Signup failed:', error);
+      throw error; // Pass the error back to the caller
+    }
   };
 
   const signout = () => {
@@ -68,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     signin,
     signup,
     signout,
-    updateUserData
+    updateUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
