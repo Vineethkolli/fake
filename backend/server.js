@@ -52,10 +52,8 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 // Middleware setup
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : 'http://localhost:5173',
+    origin:'https://frontend-tau-ashy.vercel.app',
+    methods: ['GET', 'POST'],
     credentials: true,
   })
 );
