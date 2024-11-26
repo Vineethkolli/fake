@@ -1,3 +1,4 @@
+// routes/auth.js
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
@@ -9,16 +10,16 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
   try {
     const { name, email, phoneNumber, password } = req.body;
-    
+
     if (!name || !phoneNumber || !password) {
       return res.status(400).json({ message: 'Required fields missing' });
     }
 
-    const userExists = await User.findOne({ 
+    const userExists = await User.findOne({
       $or: [
         { email: email || '' },
-        { phoneNumber }
-      ]
+        { phoneNumber },
+      ],
     });
 
     if (userExists) {
@@ -29,7 +30,7 @@ router.post('/signup', async (req, res) => {
       name,
       email,
       phoneNumber,
-      password
+      password,
     });
 
     const token = jwt.sign(
@@ -45,10 +46,11 @@ router.post('/signup', async (req, res) => {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -61,8 +63,8 @@ router.post('/signin', async (req, res) => {
     const user = await User.findOne({
       $or: [
         { email: identifier },
-        { phoneNumber: identifier }
-      ]
+        { phoneNumber: identifier },
+      ],
     });
 
     if (!user || !(await user.comparePassword(password))) {
@@ -83,29 +85,11 @@ router.post('/signin', async (req, res) => {
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Change password
-router.post('/change-password', auth, async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
-
-    if (!(await user.comparePassword(currentPassword))) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
-    }
-
-    user.password = newPassword;
-    await user.save();
-
-    res.json({ message: 'Password updated successfully' });
-  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });

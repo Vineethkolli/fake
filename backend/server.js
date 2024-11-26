@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -85,15 +86,15 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // Define routes
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/notifications', notificationRoutes);
-app.use('/payments', paymentRoutes);
-app.use('/incomes', incomeRoutes);
-app.use('/expenses', expenseRoutes);
-app.use('/verification', verificationRoutes);
-app.use('/stats', statsRoutes);
-app.use('/developer', developerRoutes);
+app.use('/api/auth', authRoutes); // This mounts authRoutes under /auth
+app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/incomes', incomeRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/verification', verificationRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/developer', developerRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
