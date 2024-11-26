@@ -25,9 +25,7 @@ const httpServer = createServer(app);
 // Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.NODE_ENV === 'production'
-      ? process.env.FRONTEND_URL
-      : 'http://localhost:5173',
+    origin: 'https://frontend-tau-ashy.vercel.app',
     methods: ['GET', 'POST'],
   },
 });
@@ -52,7 +50,7 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 // Middleware setup
 app.use(
   cors({
-    origin:'https://frontend-tau-ashy.vercel.app',
+    origin: 'https://frontend-tau-ashy.vercel.app',
     methods: ['GET', 'POST'],
     credentials: true,
   })
@@ -109,7 +107,10 @@ mongoose
     console.log('Connected to MongoDB');
     createDefaultDeveloper();
   })
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit the process if the database connection fails
+  });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
