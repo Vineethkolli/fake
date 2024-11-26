@@ -4,13 +4,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   server: {
-    host: true, // Enable access from all network interfaces
-    port: 3000, // Optional: specify a port
+    host: true
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
+    sourcemap: true
   },
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // Prompt user to install PWA
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'MERN Authentication App',
@@ -23,23 +28,23 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png', // Ensure this file exists in the public folder
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png', // Ensure this file exists in the public folder
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
+            purpose: 'any maskable'
+          }
+        ]
       },
       devOptions: {
         enabled: true,
         type: 'module',
-        navigateFallback: 'index.html', // Ensure SPA routes fallback to index.html
-      },
-    }),
-  ],
+        navigateFallback: 'index.html'
+      }
+    })
+  ]
 });
