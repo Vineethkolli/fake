@@ -12,7 +12,7 @@ const incomeSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // Name remains unique
   },
   email: {
     type: String,
@@ -23,7 +23,7 @@ const incomeSchema = new mongoose.Schema({
     },
   },
   phoneNumber: {
-    type: String,
+    type: String, // Removed `unique: true`
   },
   amount: {
     type: Number,
@@ -55,11 +55,11 @@ const incomeSchema = new mongoose.Schema({
     default: false,
   },
   deletedAt: {
-    type: Date
+    type: Date,
   },
   deletedBy: {
-    type: String
-  }
+    type: String,
+  },
 }, { timestamps: true });
 
 // Generate incomeId as I0, I1, I2, ...
