@@ -18,9 +18,9 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.icon', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'MERN Authentication App',
-        short_name: 'MERN Auth',
-        description: 'MERN Stack Authentication Application',
+        name: 'NBK Youth',
+        short_name: 'NBK Youth',
+        description: 'NBK Youth Gangavaram',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
