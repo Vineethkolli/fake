@@ -62,7 +62,7 @@ function IncomeForm({ income, onClose, onSuccess }) {
         });
         toast.success('Income updated successfully');
       } else {
-        await axios.post(`${API_URL}/api/incomes/`, {
+        await axios.post(`${API_URL}/api/incomes`, {
           ...formData,
           registerId: user.registerId,
         });

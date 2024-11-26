@@ -16,7 +16,7 @@ function ModificationLog({ onClose }) {
 
   const fetchLogs = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/expenses/logs`, {
+      const { data } = await axios.get(`${API_URL}/api/expenses/logs`, {
         params: { search }
       });
       setLogs(data);
