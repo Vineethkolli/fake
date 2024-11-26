@@ -18,10 +18,11 @@ import { createDefaultDeveloper } from './utils/setupDefaults.js';
 
 dotenv.config();
 
+// Initialize Express app and HTTP server
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO setup with CORS
+// Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.NODE_ENV === 'production'
@@ -31,7 +32,7 @@ const io = new Server(httpServer, {
   },
 });
 
-// Generate VAPID keys for web push notifications if not already set
+// Generate or configure VAPID keys for web push notifications
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
   const vapidKeys = webpush.generateVAPIDKeys();
   webpush.setVapidDetails(
@@ -48,7 +49,7 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-// Middleware
+// Middleware setup
 app.use(
   cors({
     origin:
@@ -84,10 +85,10 @@ io.on('connection', (socket) => {
   });
 });
 
-// Attach Socket.IO to app for use in routes
+// Attach Socket.IO instance to the app for use in routes
 app.set('io', io);
 
-// Routes
+// Define routes
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/notifications', notificationRoutes);
