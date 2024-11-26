@@ -95,6 +95,7 @@ function Expense() {
   
     try {
       await axios.delete(`${API_URL}/api/expenses/${expenseId}`);
+      console.log(`Final URL: '${url}'`);
       toast.success('Expense moved to recycle bin');
       fetchExpenses();
     } catch (error) {
