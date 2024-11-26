@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { CreditCard, History } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../utils/config';
 
 function PayOnline() {
   const { user } = useAuth();
@@ -20,7 +21,7 @@ function PayOnline() {
 
   const fetchPaymentHistory = async () => {
     try {
-      const { data } = await axios.get('https://fake-red.vercel.app/api/payments/history');
+      const { data } = await axios.get(`${API_URL}/api/payments/history`);
       setPaymentHistory(data);
     } catch (error) {
       toast.error('Failed to fetch payment history');
@@ -38,7 +39,7 @@ function PayOnline() {
     }
 
     try {
-      const { data } = await axios.post('https://fake-red.vercel.app/api/payments/initiate', paymentData);
+      const { data } = await axios.post(`${API_URL}/api/payments/initiate`, paymentData);
       
       // Create form and submit to Paytm
       const form = document.createElement('form');

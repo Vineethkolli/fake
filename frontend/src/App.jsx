@@ -10,6 +10,12 @@ import Users from './pages/Users';
 import PayOnline from './pages/PayOnline';
 import Notifier from './pages/Notifier';
 import Settings from './pages/Settings';
+import Stats from './pages/Stats';
+import Income from './pages/Income';
+import Expense from './pages/Expense';
+import Verification from './pages/Verification';
+import RecycleBin from './pages/RecycleBin';
+import DeveloperOptions from './pages/DeveloperOptions';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -27,10 +33,16 @@ function App() {
           <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/stats" element={<Stats />} />
             <Route path="/users" element={<Users />} />
             <Route path="/pay-online" element={<PayOnline />} />
             <Route path="/notifier" element={<Notifier />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/income" element={<Income />} />
+            <Route path="/expense" element={<Expense />} />
+            <Route path="/verification" element={<Verification />} />
+            <Route path="/recycle-bin" element={<RecycleBin />} />
+            <Route path="/developer-options" element={<DeveloperOptions />} />
           </Route>
         </Routes>
       </Router>

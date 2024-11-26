@@ -1,3 +1,5 @@
+import { API_URL } from './config';
+
 export async function subscribeToPushNotifications() {
   try {
     // Request notification permission
@@ -7,7 +9,7 @@ export async function subscribeToPushNotifications() {
     }
 
     // Get VAPID public key from server
-    const response = await fetch('https://fake-red.vercel.app/api/notifications/vapidPublicKey');
+    const response = await fetch(`${API_URL}/api/notifications/vapidPublicKey`);
     const { publicKey } = await response.json();
 
     // Register service worker
@@ -20,7 +22,7 @@ export async function subscribeToPushNotifications() {
     });
 
     // Send subscription to server
-    await fetch('https://fake-red.vercel.app/api/notifications/subscribe', {
+    await fetch(`${API_URL}/api/notifications/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,6 +34,29 @@ export async function subscribeToPushNotifications() {
     return true;
   } catch (error) {
     console.error('Failed to subscribe to push notifications:', error);
+    return false;
+  }
+}
+
+export async function unsubscribeFromPushNotifications() {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    
+    if (subscription) {
+      await subscription.unsubscribe();
+    }
+
+    await fetch(`${API_URL}/api/notifications/unsubscribe`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Failed to unsubscribe from push notifications:', error);
     return false;
   }
 }

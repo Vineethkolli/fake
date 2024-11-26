@@ -3,6 +3,7 @@ import { Bell, Download } from 'lucide-react';
 import { subscribeToPushNotifications } from '../utils/notifications';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { API_URL } from '../utils/config';
 
 function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -37,7 +38,7 @@ function Settings() {
 
   const checkNotificationStatus = async () => {
     try {
-      const { data } = await axios.get('https://fake-red.vercel.app/api/notifications/status');
+      const { data } = await axios.get(`${API_URL}/api/notifications/status`);
       setNotificationsEnabled(data.enabled);
     } catch (error) {
       console.error('Failed to check notification status:', error);
@@ -47,7 +48,7 @@ function Settings() {
   const toggleNotifications = async () => {
     try {
       if (notificationsEnabled) {
-        await axios.post('https://fake-red.vercel.app/api/notifications/unsubscribe');
+        await axios.post(`${API_URL}/api/notifications/unsubscribe`);
         setNotificationsEnabled(false);
         toast.success('Notifications disabled');
       } else {

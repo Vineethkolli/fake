@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../utils/config';
 
 const AuthContext = createContext();
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     try {
-      const { data } = await axios.get('https://fake-red.vercel.app/api/users/profile');
+      const { data } = await axios.get(`${API_URL}/api/users/profile`);
       setUser(data);
     } catch (error) {
       localStorage.removeItem('token');
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signin = async (identifier, password) => {
-    const { data } = await axios.post('https://fake-red.vercel.app/api/auth/signin', {
+    const { data } = await axios.post(`${API_URL}/api/auth/signin`, {
       identifier,
       password
     });
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (userData) => {
-    const { data } = await axios.post('https://fake-red.vercel.app/api/auth/signup', userData);
+    const { data } = await axios.post(`${API_URL}/api/auth/signup`, userData);
     localStorage.setItem('token', data.token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
     setUser(data.user);

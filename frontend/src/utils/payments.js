@@ -1,7 +1,8 @@
+import { API_URL } from './config';
 export async function initiatePayment(amount, orderId) {
   try {
     // Get payment configuration from server
-    const response = await fetch('https://fake-red.vercel.app/api/payments/initiate', {
+    const response = await fetch(`${API_URL}/api/payments/initiate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

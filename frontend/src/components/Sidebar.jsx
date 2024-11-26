@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, User, Users, Download, Bell, CreditCard, Settings } from 'lucide-react';
+import { Home, User, Users, Download, Bell, CreditCard, Settings, IndianRupee, Trash2, CheckSquare, BarChart2, Terminal } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function Sidebar({ isOpen, onNavigate }) {
@@ -9,10 +9,25 @@ function Sidebar({ isOpen, onNavigate }) {
   const links = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/profile', icon: User, label: 'Profile' },
+    { to: '/stats', icon: BarChart2, label: 'Stats' },
+    { to: '/income', icon: IndianRupee, label: 'Income' },
+    { to: '/expense', icon: IndianRupee, label: 'Expense' },
     { to: '/pay-online', icon: CreditCard, label: 'Pay Online' },
     { to: '/notifier', icon: Bell, label: 'Notifications' },
     { to: '/settings', icon: Settings, label: 'Settings' },
-    ...(user?.role === 'developer' ? [{ to: '/users', icon: Users, label: 'Users' }] : [])
+    // Show Users only for developers
+    ...(user?.role === 'developer' ? [
+      { to: '/users', icon: Users, label: 'Users' },
+      { to: '/developer-options', icon: Terminal, label: 'Developer Options' }
+    ] : []),
+    // Show Verification for developers and financiers
+    ...(user?.role === 'developer' || user?.role === 'financier' ? [
+      { to: '/verification', icon: CheckSquare, label: 'Verification' }
+    ] : []),
+    // Show Recycle Bin for both developers and financiers
+    ...(user?.role === 'developer' || user?.role === 'financier' ? [
+      { to: '/recycle-bin', icon: Trash2, label: 'Recycle Bin' }
+    ] : [])
   ];
 
   const handleClick = () => {

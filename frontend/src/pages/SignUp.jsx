@@ -8,13 +8,18 @@ function SignUp() {
     email: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    notificationsEnabled: false
   });
 
   const { signup } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? checked : value 
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -22,7 +27,16 @@ function SignUp() {
     if (formData.password !== formData.confirmPassword) {
       return toast.error('Passwords do not match');
     }
+
     try {
+      if (formData.notificationsEnabled) {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          toast.error('Notification permission denied');
+          return;
+        }
+      }
+
       await signup(formData);
       toast.success('Account created successfully');
     } catch (error) {
@@ -89,6 +103,20 @@ function SignUp() {
           onChange={handleChange}
           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
         />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          name="notificationsEnabled"
+          id="notificationsEnabled"
+          checked={formData.notificationsEnabled}
+          onChange={handleChange}
+          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+        />
+        <label htmlFor="notificationsEnabled" className="ml-2 block text-sm text-gray-900">
+          Enable Push Notifications
+        </label>
       </div>
 
       <div>

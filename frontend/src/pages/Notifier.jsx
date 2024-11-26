@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { Bell, Send, Check } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { API_URL } from '../utils/config';
+import { getSocket } from '../utils/socket';
 
 function Notifier() {
   const { user } = useAuth();
@@ -15,11 +17,24 @@ function Notifier() {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+    const socket = getSocket();
+    
+    if (socket && user) {
+      socket.on('newNotification', (notification) => {
+        setNotifications(prev => [notification, ...prev]);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('newNotification');
+      }
+    };
+  }, [user]);
 
   const fetchNotifications = async () => {
     try {
-      const { data } = await axios.get('https://fake-red.vercel.app/api/notifications');
+      const { data } = await axios.get(`${API_URL}/api/notifications`);
       setNotifications(data);
     } catch (error) {
       toast.error('Failed to fetch notifications');
@@ -29,7 +44,7 @@ function Notifier() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://fake-red.vercel.app/api/notifications/send', notification);
+      await axios.post(`${API_URL}/api/notifications/send`, notification);
       toast.success('Notification sent successfully');
       setNotification({ title: '', body: '', userId: '' });
       fetchNotifications();
@@ -40,7 +55,7 @@ function Notifier() {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.post(`https://fake-red.vercel.app/api/notifications/${notificationId}/read`);
+      await axios.post(`${API_URL}/api/notifications/${notificationId}/read`);
       fetchNotifications();
     } catch (error) {
       toast.error('Failed to mark notification as read');

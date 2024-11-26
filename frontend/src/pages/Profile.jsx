@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { LogOut, Save } from 'lucide-react';
+import { API_URL } from '../utils/config';
 
 function Profile() {
   const { user, signout, updateUserData } = useAuth();
@@ -41,7 +42,7 @@ function Profile() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.patch('https://fake-red.vercel.app/api/users/profile', userData);
+      const { data } = await axios.patch(`${API_URL}/api/users/profile`, userData);
       updateUserData(data); // Update global state
       toast.success('Profile updated successfully');
       setIsEditing(false);
@@ -64,7 +65,7 @@ function Profile() {
     }
 
     try {
-      await axios.post('https://fake-red.vercel.app/api/auth/change-password', {
+      await axios.post(`${API_URL}/api/auth/change-password`, {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });

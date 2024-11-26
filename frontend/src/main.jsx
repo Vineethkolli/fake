@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initializeSocket } from './utils/socket';
+
+// Initialize socket connection
+initializeSocket();
 
 // Register service worker
 if ('serviceWorker' in navigator) {

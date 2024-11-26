@@ -48,17 +48,19 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Generate registerId
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.registerId) {
     const counter = await Counter.findByIdAndUpdate(
       'registerId',
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
-    this.registerId = `R${counter.seq.toString().padStart(2, '0')}`;
+    // Remove padding logic to start from R0, R1, R2, ...
+    this.registerId = `R${counter.seq}`;
   }
   next();
 });
+
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {

@@ -16,7 +16,8 @@ router.get('/', auth, checkRole(['developer']), async (req, res) => {
           { registerId: { $regex: search, $options: 'i' } },
           { name: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
-          { phoneNumber: { $regex: search, $options: 'i' } }
+          { phoneNumber: { $regex: search, $options: 'i' } },
+          { role: { $regex: search, $options: 'i' } }
         ]
       };
     }
