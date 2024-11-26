@@ -16,7 +16,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.icon', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'MERN Authentication App',
         short_name: 'MERN Auth',
@@ -28,12 +28,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'logo.svg.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.svg.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
