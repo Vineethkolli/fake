@@ -16,8 +16,6 @@ const incomeSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    unique: true, 
-    sparse: true, // Allows null values to not affect uniqueness
     validate: {
       validator: (v) =>
         !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), // Optional but must follow email format
@@ -26,8 +24,6 @@ const incomeSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: String,
-    unique: true, 
-    sparse: true, // Allows null values to not affect uniqueness
   },
   amount: {
     type: Number,
