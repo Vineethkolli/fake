@@ -68,8 +68,8 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('api/auth', authRoutes);
+app.use('api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/incomes', incomeRoutes);
