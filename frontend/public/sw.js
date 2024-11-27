@@ -44,6 +44,8 @@ self.addEventListener('fetch', (event) => {
 
 // Push notification event
 self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
   const data = event.data.json();
   const options = {
     body: data.body,
@@ -51,7 +53,8 @@ self.addEventListener('push', (event) => {
     badge: '/logo.png',
     vibrate: [200, 100, 200],
     data: {
-      url: data.data?.url || '/'
+      url: data.data?.url || '/',
+      notificationId: data.data?.notificationId
     },
     actions: [
       {
@@ -63,8 +66,9 @@ self.addEventListener('push', (event) => {
         title: 'Close',
       }
     ],
-    tag: 'nbk-youth-notification', // For notification grouping
-    renotify: true // Always notify even if there's an existing notification
+    requireInteraction: true,
+    tag: 'nbk-youth-notification',
+    renotify: true
   };
 
   event.waitUntil(
@@ -80,20 +84,27 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
+  const urlToOpen = event.notification.data?.url || '/';
+
   event.waitUntil(
-    clients.matchAll({ type: 'window' })
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
-        const url = event.notification.data.url || '/';
-        
-        // If a window is already open, focus it and navigate
+        // If a window is already open, focus it
         for (const client of clientList) {
-          if (client.url === url && 'focus' in client) {
+          if (client.url === urlToOpen && 'focus' in client) {
             return client.focus();
           }
         }
-        
         // Otherwise open a new window
-        return clients.openWindow(url);
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
       })
   );
+});
+
+// Notification close event
+self.addEventListener('notificationclose', (event) => {
+  // You can add analytics or logging here if needed
+  console.log('Notification was closed', event.notification);
 });

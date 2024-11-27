@@ -45,14 +45,6 @@ export async function subscribeToPushNotifications() {
       }
     });
 
-    // Test notification
-    new Notification('Notifications Enabled', {
-      body: 'You will now receive notifications',
-      icon: '/logo.png',
-      badge: '/logo.png',
-      vibrate: [200, 100, 200]
-    });
-
     return true;
   } catch (error) {
     console.error('Failed to subscribe to push notifications:', error);
@@ -79,16 +71,45 @@ export async function unsubscribeFromPushNotifications() {
       }
     });
 
-    // Show confirmation notification
-    new Notification('Notifications Disabled', {
-      body: 'You will no longer receive notifications',
-      icon: '/logo.png',
-      badge: '/logo.png'
-    });
-
     return true;
   } catch (error) {
     console.error('Failed to unsubscribe from push notifications:', error);
     throw error;
+  }
+}
+
+export function showNotification(title, body, data = {}) {
+  if (!('Notification' in window)) {
+    console.warn('Notifications not supported');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    const options = {
+      body,
+      icon: '/logo.png',
+      badge: '/logo.png',
+      vibrate: [200, 100, 200],
+      data,
+      requireInteraction: true,
+      actions: [
+        {
+          action: 'open',
+          title: 'Open',
+        },
+        {
+          action: 'close',
+          title: 'Close',
+        }
+      ]
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification(title, options);
+      });
+    } else {
+      new Notification(title, options);
+    }
   }
 }

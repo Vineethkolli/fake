@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { API_URL } from '../utils/config';
 import { getSocket } from '../utils/socket';
+import { showNotification, subscribeToPushNotifications } from '../utils/notifications';
 import NotificationHistory from '../components/notification/NotificationHistory';
 
 function Notifier() {
@@ -19,20 +20,21 @@ function Notifier() {
 
   useEffect(() => {
     fetchNotifications();
+    setupNotifications();
+  }, [user]);
+
+  const setupNotifications = async () => {
+    if (Notification.permission === 'default') {
+      try {
+        await subscribeToPushNotifications();
+      } catch (error) {
+        console.error('Failed to setup notifications:', error);
+      }
+    }
+
     const socket = getSocket();
-    
     if (socket && user) {
-      socket.on('newNotification', (notification) => {
-        setNotifications(prev => [notification, ...prev]);
-        if (Notification.permission === 'granted') {
-          new Notification(notification.title, {
-            body: notification.body,
-            icon: '/logo.png',
-            badge: '/logo.png',
-            vibrate: [200, 100, 200]
-          });
-        }
-      });
+      socket.on('newNotification', handleNewNotification);
     }
 
     return () => {
@@ -40,7 +42,19 @@ function Notifier() {
         socket.off('newNotification');
       }
     };
-  }, [user]);
+  };
+
+  const handleNewNotification = (notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    showNotification(
+      notification.title,
+      notification.body,
+      {
+        url: '/notifier',
+        notificationId: notification._id
+      }
+    );
+  };
 
   const fetchNotifications = async () => {
     try {
