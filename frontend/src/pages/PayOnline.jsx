@@ -4,20 +4,33 @@ import { toast } from 'react-hot-toast';
 import { CreditCard, History } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../utils/config';
+import { initiateUPIPayment } from '../utils/payments';
+import UPIPayment from '../components/payment/UPIPayment';
 
 function PayOnline() {
   const { user } = useAuth();
   const [paymentData, setPaymentData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || '',
+    name: '',
+    email: '',
+    phoneNumber: '',
     amount: ''
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [showQR, setShowQR] = useState(false);
+  const [qrData, setQrData] = useState(null);
+  const [currentPaymentId, setCurrentPaymentId] = useState(null);
 
   useEffect(() => {
+    if (user) {
+      setPaymentData(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || ''
+      }));
+    }
     fetchPaymentHistory();
-  }, []);
+  }, [user]);
 
   const fetchPaymentHistory = async () => {
     try {
@@ -38,28 +51,30 @@ function PayOnline() {
       return toast.error('Please enter a valid amount');
     }
 
-    try {
-      const { data } = await axios.post(`${API_URL}/api/payments/initiate`, paymentData);
-      
-      // Create form and submit to Paytm
-      const form = document.createElement('form');
-      form.setAttribute('method', 'post');
-      form.setAttribute('action', `https://securegw-stage.paytm.in/order/process`);
-
-      Object.entries(data.paytmConfig).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.setAttribute('type', 'hidden');
-        input.setAttribute('name', key);
-        input.setAttribute('value', value);
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-      form.remove();
-    } catch (error) {
-      toast.error('Payment initiation failed');
+    if (!paymentData.name || !paymentData.phoneNumber) {
+      return toast.error('Name and phone number are required');
     }
+
+    try {
+      const result = await initiateUPIPayment({
+        ...paymentData,
+        amount: parseFloat(paymentData.amount),
+        userId: user.id,
+        registerId: user.registerId
+      });
+      setQrData(result);
+      setShowQR(true);
+      setCurrentPaymentId(result.paymentId);
+    } catch (error) {
+      toast.error(error.message || 'Payment initiation failed');
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success('Payment successful!');
+    setShowQR(false);
+    setCurrentPaymentId(null);
+    fetchPaymentHistory();
   };
 
   return (
@@ -128,6 +143,22 @@ function PayOnline() {
             Pay Now
           </button>
         </form>
+
+        {showQR && qrData && (
+          <UPIPayment
+            upiUrl={qrData.upiUrl}
+            qrCodePath={qrData.qrCodePath}
+            paymentId={qrData.paymentId}
+            amount={paymentData.amount}
+            upiId={qrData.upiId}
+            merchantName={qrData.merchantName}
+            onClose={() => {
+              setShowQR(false);
+              setCurrentPaymentId(null);
+            }}
+            onSuccess={handlePaymentSuccess}
+          />
+        )}
       </div>
 
       <div className="bg-white shadow-lg rounded-lg p-6">

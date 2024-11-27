@@ -8,10 +8,10 @@ function Sidebar({ isOpen, onNavigate }) {
 
   const links = [
     { to: '/', icon: Home, label: 'Home' },
-    { to: '/profile', icon: User, label: 'Profile' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/income', icon: IndianRupee, label: 'Income' },
     { to: '/expense', icon: IndianRupee, label: 'Expense' },
+    { to: '/profile', icon: User, label: 'Profile' },
     { to: '/pay-online', icon: CreditCard, label: 'Pay Online' },
     { to: '/notifier', icon: Bell, label: 'Notifications' },
     { to: '/settings', icon: Settings, label: 'Settings' },
@@ -38,7 +38,7 @@ function Sidebar({ isOpen, onNavigate }) {
 
   return (
     <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white shadow-lg transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 z-10`}>
-      <div className="w-64 h-full flex flex-col">
+      <div className="w-60 h-full flex flex-col">
         <nav className="flex-1 px-2 py-4 space-y-1">
           {links.map((link) => {
             const Icon = link.icon;

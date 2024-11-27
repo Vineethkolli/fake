@@ -1,57 +1,63 @@
 import mongoose from 'mongoose';
+import { generatePaymentId } from '../utils/paymentUtils.js';
 
-const counterSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  seq: { type: Number, default: 0 }
-});
-
-const Counter = mongoose.model('PaymentCounter', counterSchema);
-
-const paymentSchema = new mongoose.Schema({
-  paymentId: {
-    type: String,
-    unique: true
+const paymentSchema = new mongoose.Schema(
+  {
+    paymentId: {
+      type: String,
+      unique: true,
+      required: true,
+      default: generatePaymentId,
+    },
+    registerId: {
+      type: String,
+      required: [true, 'Register ID is required'],
+    },
+    name: {
+      type: String,
+      required: [true, 'Name is required'],
+    },
+    email: {
+      type: String,
+      default: '',
+    },
+    phoneNumber: {
+      type: String,
+      required: [true, 'Phone number is required'],
+    },
+    amount: {
+      type: Number,
+      required: [true, 'Amount is required'],
+      min: [1, 'Amount must be at least ₹1'],
+      max: [100000, 'Amount cannot exceed ₹1,00,000'],
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'success', 'failed'],
+      default: 'pending',
+    },
+    paymentMode: {
+      type: String,
+      enum: ['upi'],
+      default: 'upi',
+    },
+    upiUrl: {
+      type: String,
+    },
+    transactionDetails: {
+      type: Object,
+      default: {},
+    },
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  registerId: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  email: String,
-  phoneNumber: {
-    type: String,
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'success', 'failed'],
-    default: 'pending'
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
-}, { timestamps: true });
+);
 
-// Generate paymentId
-paymentSchema.pre('save', async function(next) {
-  if (!this.paymentId) {
-    const counter = await Counter.findByIdAndUpdate(
-      'paymentId',
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-    this.paymentId = `P${counter.seq.toString().padStart(2, '0')}`;
-  }
-  next();
-});
+paymentSchema.index({ paymentId: 1 }, { unique: true });
+paymentSchema.index({ status: 1 });
+paymentSchema.index({ createdAt: -1 });
 
 export default mongoose.model('Payment', paymentSchema);
