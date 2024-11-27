@@ -1,40 +1,43 @@
 import { useState, useEffect } from 'react';
-import { Bell, Download } from 'lucide-react';
-import { subscribeToPushNotifications } from '../utils/notifications';
+import { Bell, Download, AlertTriangle } from 'lucide-react';
+import { subscribeToPushNotifications, unsubscribeFromPushNotifications } from '../utils/notifications';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { API_URL } from '../utils/config';
 
 function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [notificationsSupported, setNotificationsSupported] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    checkNotificationSupport();
     checkNotificationStatus();
-    
-    // Check if it's iOS
+    checkInstallability();
+  }, []);
+
+  const checkNotificationSupport = () => {
+    const supported = 'Notification' in window && 'serviceWorker' in navigator;
+    setNotificationsSupported(supported);
+  };
+
+  const checkInstallability = () => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(isIOSDevice);
 
-    const handleBeforeInstallPrompt = (e) => {
+    window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setInstallPrompt(e);
       setIsInstallable(true);
-    };
+    });
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Check if the app is already installed
+    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstallable(false);
     }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+  };
 
   const checkNotificationStatus = async () => {
     try {
@@ -48,7 +51,7 @@ function Settings() {
   const toggleNotifications = async () => {
     try {
       if (notificationsEnabled) {
-        await axios.post(`${API_URL}/api/notifications/unsubscribe`);
+        await unsubscribeFromPushNotifications();
         setNotificationsEnabled(false);
         toast.success('Notifications disabled');
       } else {
@@ -56,24 +59,20 @@ function Settings() {
         if (success) {
           setNotificationsEnabled(true);
           toast.success('Notifications enabled');
-        } else {
-          toast.error('Failed to enable notifications');
         }
       }
     } catch (error) {
-      toast.error('Failed to update notification settings');
+      toast.error(error.message || 'Failed to update notification settings');
     }
   };
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!installPrompt) return;
 
     try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
+      const result = await installPrompt.prompt();
+      if (result.outcome === 'accepted') {
+        setInstallPrompt(null);
         setIsInstallable(false);
         toast.success('App installed successfully');
       }
@@ -94,24 +93,31 @@ function Settings() {
           </h3>
           
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Push Notifications</p>
-                <p className="text-sm text-gray-500">
-                  {notificationsEnabled ? 'Enabled' : 'Disabled'}
-                </p>
+            {!notificationsSupported ? (
+              <div className="flex items-center text-yellow-700">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                <p>Notifications are not supported in this browser</p>
               </div>
-              <button
-                onClick={toggleNotifications}
-                className={`px-4 py-2 rounded-md text-white ${
-                  notificationsEnabled
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-indigo-600 hover:bg-indigo-700'
-                }`}
-              >
-                {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
-              </button>
-            </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Push Notifications</p>
+                  <p className="text-sm text-gray-500">
+                    {notificationsEnabled ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
+                <button
+                  onClick={toggleNotifications}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    notificationsEnabled
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
