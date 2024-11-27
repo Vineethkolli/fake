@@ -22,7 +22,9 @@ export async function initiateUPIPayment(paymentData) {
       throw new Error('Authentication required');
     }
 
-    const response = await axios.post(`${API_URL}/api/payments/initiate`,paymentData,
+    const response = await axios.post(
+      `${API_URL}/api/payments/initiate`,
+      paymentData,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -58,7 +60,8 @@ export async function checkPaymentStatus(paymentId) {
       throw new Error('Authentication required');
     }
 
-    const response = await axios.get(`${API_URL}/api/payments/status/${paymentId}`,
+    const response = await axios.get(
+      `${API_URL}/api/payments/status/${paymentId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -79,7 +82,8 @@ export async function getPaymentHistory() {
       throw new Error('Authentication required');
     }
 
-    const response = await axios.get(`${API_URL}/api/payments/history`,
+    const response = await axios.get(
+      `${API_URL}/api/payments/history`,
       {
         headers: {
           'Authorization': `Bearer ${token}`

@@ -32,28 +32,40 @@ function PayOnline() {
     fetchPaymentHistory();
   }, [user]);
 
-  const fetchPaymentHistory = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/payments/history`);
-      setPaymentHistory(data);
-    } catch (error) {
-      toast.error('Failed to fetch payment history');
-    }
-  };
+ 
+const fetchPaymentHistory = async () => {
+  try {
+    // Send registerId as a query parameter
+    const { data } = await axios.get(`${API_URL}/api/payments/history`, {
+      params: { registerId: user.registerId } // send registerId as a query parameter
+    });
+    setPaymentHistory(data);
+  } catch (error) {
+    toast.error('Failed to fetch payment history');
+  }
+};
+
 
   const handleChange = (e) => {
     setPaymentData({ ...paymentData, [e.target.name]: e.target.value });
   };
 
+  const validatePaymentData = () => {
+    const { amount, name, phoneNumber } = paymentData;
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return false;
+    }
+    if (!name || !phoneNumber) {
+      toast.error('Name and phone number are required');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!paymentData.amount || parseFloat(paymentData.amount) <= 0) {
-      return toast.error('Please enter a valid amount');
-    }
-
-    if (!paymentData.name || !paymentData.phoneNumber) {
-      return toast.error('Name and phone number are required');
-    }
+    if (!validatePaymentData()) return;
 
     try {
       const result = await initiateUPIPayment({
@@ -83,7 +95,7 @@ function PayOnline() {
         <h2 className="text-2xl font-semibold mb-6 flex items-center">
           <CreditCard className="mr-2" /> Pay Online
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -97,7 +109,7 @@ function PayOnline() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
@@ -108,7 +120,7 @@ function PayOnline() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Phone Number</label>
               <input
@@ -120,7 +132,7 @@ function PayOnline() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Amount (₹)</label>
               <input
@@ -165,7 +177,7 @@ function PayOnline() {
         <h3 className="text-xl font-semibold mb-4 flex items-center">
           <History className="mr-2" /> Payment History
         </h3>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -177,24 +189,36 @@ function PayOnline() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paymentHistory.map((payment) => (
-                <tr key={payment.paymentId}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{payment.paymentId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {new Date(payment.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">₹{payment.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      payment.status === 'success' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'failed' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {payment.status}
-                    </span>
+              {paymentHistory.length > 0 ? (
+                paymentHistory.map((payment) => (
+                  <tr key={payment.paymentId}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{payment.paymentId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {new Date(payment.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">₹{payment.amount}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          payment.status === 'success'
+                            ? 'bg-green-100 text-green-800'
+                            : payment.status === 'failed'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {payment.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                    No payment history available.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

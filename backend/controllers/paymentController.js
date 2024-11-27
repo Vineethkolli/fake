@@ -1,3 +1,4 @@
+// paymentController.js
 import { paymentService } from '../services/paymentService.js';
 
 export const paymentController = {
@@ -12,9 +13,7 @@ export const paymentController = {
         });
       }
 
-      const paymentData = { amount, registerId, name, phoneNumber, ...req.body };
-      const payment = await paymentService.initiatePayment(paymentData);
-
+      const payment = await paymentService.initiatePayment(req.body);
       res.status(201).json(payment);
     } catch (error) {
       console.error('Payment initiation error:', error);
@@ -47,6 +46,30 @@ export const paymentController = {
     }
   },
 
+  // Updated getPaymentHistory method
+  getPaymentHistory: async (req, res) => {
+    try {
+      // Access registerId from the query parameters
+      const { registerId } = req.query;
+
+      if (!registerId) {
+        return res.status(400).json({
+          message: 'Register ID is required',
+          error: 'MISSING_REGISTER_ID',
+        });
+      }
+
+      const history = await paymentService.getPaymentHistory(registerId);
+      res.json(history);
+    } catch (error) {
+      console.error('Payment history error:', error);
+      res.status(500).json({
+        message: 'Failed to fetch payment history',
+        error: error.message,
+      });
+    }
+  },
+
   verifyPayment: async (req, res) => {
     try {
       const { paymentId, status } = req.body;
@@ -58,37 +81,15 @@ export const paymentController = {
         });
       }
 
-      const payment = await paymentService.updatePaymentStatus(paymentId, status);
+      const updatedPayment = await paymentService.updatePaymentStatus(paymentId, status);
       res.json({
         message: 'Payment status updated successfully',
-        status: payment.status,
+        payment: updatedPayment,
       });
     } catch (error) {
       console.error('Payment verification error:', error);
       res.status(500).json({
         message: 'Payment verification failed',
-        error: error.message,
-      });
-    }
-  },
-
-  getPaymentHistory: async (req, res) => {
-    try {
-      const { registerId } = req.body;
-
-      if (!registerId) {
-        return res.status(400).json({
-          message: 'Register ID is required',
-          error: 'MISSING_REGISTER_ID',
-        });
-      }
-
-      const payments = await paymentService.getPaymentHistory(registerId);
-      res.json(payments);
-    } catch (error) {
-      console.error('Payment history error:', error);
-      res.status(500).json({
-        message: 'Failed to fetch payment history',
         error: error.message,
       });
     }

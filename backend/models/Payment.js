@@ -56,8 +56,7 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-paymentSchema.index({ paymentId: 1 }, { unique: true });
-paymentSchema.index({ status: 1 });
-paymentSchema.index({ createdAt: -1 });
+// Avoid overwriting the model if it's already defined
+const Payment = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
 
-export default mongoose.model('Payment', paymentSchema);
+export default Payment;

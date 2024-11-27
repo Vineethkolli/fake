@@ -5,10 +5,9 @@ dotenv.config();
 
 export const PAYMENT_CONFIG = {
   UPI: {
-    ID: process.env.UPI_ID || 'nbkyouth@upi',
+    ID: process.env.UPI_ID || '7032324041@ptsbi',
     MERCHANT_NAME: process.env.UPI_MERCHANT_NAME || 'NBK Youth',
-    MERCHANT_VPA: process.env.UPI_MERCHANT_VPA || 'nbkyouth@upi',
-    QR_CODE_PATH: process.env.UPI_QR_CODE_PATH || '/assets/payments/upi-qr.png',
+    MERCHANT_VPA: process.env.UPI_MERCHANT_VPA || '7032324041@ptsbi',
   },
   STATUS: {
     PENDING: 'pending',
