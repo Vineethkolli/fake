@@ -3,6 +3,7 @@ import Income from '../models/Income.js';
 import Expense from '../models/Expense.js';
 import IncomeLog from '../models/IncomeLog.js';
 import ExpenseLog from '../models/ExpenseLog.js';
+import Notification from '../models/Notification.js';
 
 export const developerController = {
   clearData: async (req, res) => {
@@ -25,6 +26,10 @@ export const developerController = {
           // Delete all expense records and logs
           await Expense.deleteMany({});
           await ExpenseLog.deleteMany({});
+          break;
+
+        case 'notifications':
+          await Notification.deleteMany({});
           break;
 
         default:

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Bell, Send, Check } from 'lucide-react';
+import { Bell, Send, Check, Users } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { API_URL } from '../utils/config';
 import { getSocket } from '../utils/socket';
+import { showNotification, subscribeToPushNotifications } from '../utils/notifications';
+import NotificationHistory from '../components/notification/NotificationHistory';
 
 function Notifier() {
   const { user } = useAuth();
@@ -12,17 +14,27 @@ function Notifier() {
   const [notification, setNotification] = useState({
     title: '',
     body: '',
-    userId: '' // Empty for all users
+    target: 'all',
+    registerId: ''
   });
 
   useEffect(() => {
     fetchNotifications();
+    setupNotifications();
+  }, [user]);
+
+  const setupNotifications = async () => {
+    if (Notification.permission === 'default') {
+      try {
+        await subscribeToPushNotifications();
+      } catch (error) {
+        console.error('Failed to setup notifications:', error);
+      }
+    }
+
     const socket = getSocket();
-    
     if (socket && user) {
-      socket.on('newNotification', (notification) => {
-        setNotifications(prev => [notification, ...prev]);
-      });
+      socket.on('newNotification', handleNewNotification);
     }
 
     return () => {
@@ -30,7 +42,19 @@ function Notifier() {
         socket.off('newNotification');
       }
     };
-  }, [user]);
+  };
+
+  const handleNewNotification = (notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    showNotification(
+      notification.title,
+      notification.body,
+      {
+        url: '/notifier',
+        notificationId: notification._id
+      }
+    );
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -44,21 +68,19 @@ function Notifier() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_URL}/api/notifications/send`, notification);
+      const payload = {
+        title: notification.title,
+        body: notification.body,
+        target: notification.target,
+        ...(notification.target === 'registerId' && { registerId: notification.registerId })
+      };
+
+      await axios.post(`${API_URL}/api/notifications/send`, payload);
       toast.success('Notification sent successfully');
-      setNotification({ title: '', body: '', userId: '' });
+      setNotification({ title: '', body: '', target: 'all', registerId: '' });
       fetchNotifications();
     } catch (error) {
       toast.error('Failed to send notification');
-    }
-  };
-
-  const markAsRead = async (notificationId) => {
-    try {
-      await axios.post(`${API_URL}/api/notifications/${notificationId}/read`);
-      fetchNotifications();
-    } catch (error) {
-      toast.error('Failed to mark notification as read');
     }
   };
 
@@ -72,9 +94,7 @@ function Notifier() {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Title
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Title</label>
               <input
                 type="text"
                 value={notification.title}
@@ -85,9 +105,7 @@ function Notifier() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Message
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Message</label>
               <textarea
                 value={notification.body}
                 onChange={(e) => setNotification({ ...notification, body: e.target.value })}
@@ -98,16 +116,34 @@ function Notifier() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                User ID (Leave empty to send to all users)
-              </label>
-              <input
-                type="text"
-                value={notification.userId}
-                onChange={(e) => setNotification({ ...notification, userId: e.target.value })}
+              <label className="block text-sm font-medium text-gray-700">Send To</label>
+              <select
+                value={notification.target}
+                onChange={(e) => setNotification({ ...notification, target: e.target.value })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
+              >
+                <option value="all">All Users</option>
+                <option value="registerId">Specific Register ID</option>
+                <option value="allUsers">All Regular Users</option>
+                <option value="allDevelopers">All Developers</option>
+                <option value="allAdmins">All Admins</option>
+                <option value="allFinanciers">All Financiers</option>
+              </select>
             </div>
+
+            {notification.target === 'registerId' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Register ID</label>
+                <input
+                  type="text"
+                  value={notification.registerId}
+                  onChange={(e) => setNotification({ ...notification, registerId: e.target.value })}
+                  required
+                  placeholder="Enter Register ID (e.g., R1)"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+            )}
 
             <button
               type="submit"
@@ -119,46 +155,7 @@ function Notifier() {
         </div>
       )}
 
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-semibold mb-6 flex items-center">
-          <Bell className="mr-2" /> Notifications
-        </h2>
-
-        <div className="space-y-4">
-          {notifications.length === 0 ? (
-            <p className="text-gray-500 text-center">No notifications yet</p>
-          ) : (
-            notifications.map((notif) => (
-              <div
-                key={notif._id}
-                className={`p-4 rounded-lg border ${
-                  notif.read.includes(user?.id)
-                    ? 'bg-gray-50 border-gray-200'
-                    : 'bg-white border-indigo-200'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">{notif.title}</h3>
-                    <p className="text-gray-600 mt-1">{notif.body}</p>
-                    <div className="mt-2 text-sm text-gray-500">
-                      From: {notif.sender.name} • {new Date(notif.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                  {!notif.read.includes(user?.id) && (
-                    <button
-                      onClick={() => markAsRead(notif._id)}
-                      className="text-indigo-600 hover:text-indigo-800"
-                    >
-                      <Check className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+      <NotificationHistory notifications={notifications} />
     </div>
   );
 }

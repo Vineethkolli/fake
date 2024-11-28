@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import VerificationTable from '../components/verification/VerificationTable';
+import PaymentVerificationTable from '../components/verification/PaymentVerificationTable';
 import VerificationFilters from '../components/verification/VerificationFilters';
 import { API_URL } from '../utils/config';
 
@@ -11,6 +12,7 @@ function Verification() {
   const [activeTab, setActiveTab] = useState('income');
   const [incomeData, setIncomeData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
+  const [paymentData, setPaymentData] = useState([]);
   const [filters, setFilters] = useState({
     verifyLog: 'not verified'
   });
@@ -21,31 +23,62 @@ function Verification() {
 
   const fetchData = async () => {
     try {
-      const endpoint = activeTab === 'income' ? 'incomes' : 'expenses';
+      let endpoint;
+      switch (activeTab) {
+        case 'income':
+          endpoint = 'incomes';
+          break;
+        case 'expense':
+          endpoint = 'expenses';
+          break;
+        case 'payment':
+          endpoint = 'payments';
+          break;
+        default:
+          return;
+      }
+
       const { data } = await axios.get(`${API_URL}/api/${endpoint}/verification`, {
         params: filters
       });
-      if (activeTab === 'income') {
-        setIncomeData(data);
-      } else {
-        setExpenseData(data);
+
+      switch (activeTab) {
+        case 'income':
+          setIncomeData(data);
+          break;
+        case 'expense':
+          setExpenseData(data);
+          break;
+        case 'payment':
+          setPaymentData(data);
+          break;
       }
     } catch (error) {
       toast.error(`Failed to fetch ${activeTab} data`);
     }
   };
 
-  const handleVerifyLogUpdate = async (id, verifyLog) => {
+  const handleVerifyLogUpdate = async (id, verifyLog, updatedData = null) => {
     try {
-      const endpoint = activeTab === 'income' ? 'incomes' : 'expenses';
-      await axios.patch(`${API_URL}/api/${endpoint}/${id}/verify`, {
+      const endpoint = activeTab === 'income' ? 'incomes' : activeTab === 'expense' ? 'expenses' : 'payments';
+      const payload = {
         verifyLog,
-        registerId: user.registerId
-      });
+        registerId: user.registerId,
+        ...(updatedData && { 
+          name: updatedData.name, 
+          belongsTo: updatedData.belongsTo 
+        })
+      };
+
+      await axios.patch(`${API_URL}/api/${endpoint}/status/${id}`, payload);
       toast.success('Verification status updated successfully');
       fetchData();
     } catch (error) {
-      toast.error('Failed to update verification status');
+      if (error.response?.data?.message?.includes('Name already exists')) {
+        toast.error('This name already exists in income records. Please update the name.');
+      } else {
+        toast.error('Failed to update verification status');
+      }
     }
   };
 
@@ -78,17 +111,34 @@ function Verification() {
           >
             Expense
           </button>
+          <button
+            onClick={() => setActiveTab('payment')}
+            className={`px-4 py-2 rounded-md ${
+              activeTab === 'payment'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            Pay Online
+          </button>
         </div>
       </div>
 
       <VerificationFilters filters={filters} onChange={setFilters} />
 
       <div className="bg-white rounded-lg shadow">
-        <VerificationTable
-          data={activeTab === 'income' ? incomeData : expenseData}
-          type={activeTab}
-          onVerifyLogUpdate={handleVerifyLogUpdate}
-        />
+        {activeTab === 'payment' ? (
+          <PaymentVerificationTable
+            payments={paymentData}
+            onVerifyLogUpdate={handleVerifyLogUpdate}
+          />
+        ) : (
+          <VerificationTable
+            data={activeTab === 'income' ? incomeData : expenseData}
+            type={activeTab}
+            onVerifyLogUpdate={handleVerifyLogUpdate}
+          />
+        )}
       </div>
     </div>
   );

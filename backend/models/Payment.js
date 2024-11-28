@@ -1,21 +1,9 @@
 import mongoose from 'mongoose';
 
-const counterSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  seq: { type: Number, default: 0 }
-});
-
-const Counter = mongoose.model('PaymentCounter', counterSchema);
-
 const paymentSchema = new mongoose.Schema({
   paymentId: {
     type: String,
     unique: true
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
   },
   registerId: {
     type: String,
@@ -32,24 +20,35 @@ const paymentSchema = new mongoose.Schema({
   },
   amount: {
     type: Number,
+    required: true,
+    min: [0, 'Amount must be a positive number']
+  },
+  belongsTo: {
+    type: String,
+    enum: ['villagers', 'youth'],
+    default: 'youth'
+  },
+  screenshot: {
+    type: String,
     required: true
   },
-  status: {
+  transactionStatus: {
     type: String,
-    enum: ['pending', 'success', 'failed'],
+    enum: ['pending', 'successful', 'failed'],
     default: 'pending'
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['verified', 'not verified', 'rejected'],
+    default: 'not verified'
   }
 }, { timestamps: true });
 
-// Generate paymentId
+// Generate payment ID as P0, P1, P2, ...
 paymentSchema.pre('save', async function(next) {
   if (!this.paymentId) {
-    const counter = await Counter.findByIdAndUpdate(
-      'paymentId',
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-    this.paymentId = `P${counter.seq.toString().padStart(2, '0')}`;
+    const count = await mongoose.model('Payment').countDocuments();
+    this.paymentId = `P${count}`;
   }
   next();
 });

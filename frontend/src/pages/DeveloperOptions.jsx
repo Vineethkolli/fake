@@ -37,103 +37,44 @@ function DeveloperOptions() {
           <h2 className="text-xl font-medium mb-4">Clear Data</h2>
           <div className="space-y-4">
             {/* Clear Users */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Clear Users Data</h3>
-                <p className="text-sm text-gray-500">Delete all user accounts except the developer account</p>
-              </div>
-              {confirmAction === 'users' ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-red-600">Are you sure?</span>
-                  <button
-                    onClick={() => handleClearData('users')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => setConfirmAction('')}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleClearData('users')}
-                  className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  <Trash2 className="h-5 w-5 mr-2" />
-                  Clear Users
-                </button>
-              )}
-            </div>
+            <ClearOption
+              title="Clear Users Data"
+              description="Delete all user accounts except the developer account"
+              type="users"
+              confirmAction={confirmAction}
+              setConfirmAction={setConfirmAction}
+              handleClearData={handleClearData}
+            />
 
             {/* Clear Income */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Clear Income Data</h3>
-                <p className="text-sm text-gray-500">Delete all income records</p>
-              </div>
-              {confirmAction === 'income' ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-red-600">Are you sure?</span>
-                  <button
-                    onClick={() => handleClearData('income')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => setConfirmAction('')}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleClearData('income')}
-                  className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  <Trash2 className="h-5 w-5 mr-2" />
-                  Clear Income
-                </button>
-              )}
-            </div>
+            <ClearOption
+              title="Clear Income Data"
+              description="Delete all income records"
+              type="income"
+              confirmAction={confirmAction}
+              setConfirmAction={setConfirmAction}
+              handleClearData={handleClearData}
+            />
 
             {/* Clear Expense */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Clear Expense Data</h3>
-                <p className="text-sm text-gray-500">Delete all expense records</p>
-              </div>
-              {confirmAction === 'expense' ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-red-600">Are you sure?</span>
-                  <button
-                    onClick={() => handleClearData('expense')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    onClick={() => setConfirmAction('')}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleClearData('expense')}
-                  className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  <Trash2 className="h-5 w-5 mr-2" />
-                  Clear Expense
-                </button>
-              )}
-            </div>
+            <ClearOption
+              title="Clear Expense Data"
+              description="Delete all expense records"
+              type="expense"
+              confirmAction={confirmAction}
+              setConfirmAction={setConfirmAction}
+              handleClearData={handleClearData}
+            />
+
+            {/* Clear Notifications */}
+            <ClearOption
+              title="Clear Notifications"
+              description="Delete all system notifications"
+              type="notifications"
+              confirmAction={confirmAction}
+              setConfirmAction={setConfirmAction}
+              handleClearData={handleClearData}
+            />
           </div>
         </div>
 
@@ -143,13 +84,48 @@ function DeveloperOptions() {
             <div>
               <h3 className="text-yellow-800 font-medium">Warning</h3>
               <p className="text-sm text-yellow-700">
-                These actions are irreversible. Please make sure you have backed up any important data
-                before proceeding.
+                These actions are irreversible. Please make sure you have backed up any important data before proceeding.
               </p>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ClearOption({ title, description, type, confirmAction, setConfirmAction, handleClearData }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-medium">{title}</h3>
+        <p className="text-sm text-gray-500">{description}</p>
+      </div>
+      {confirmAction === type ? (
+        <div className="flex items-center space-x-2">
+          <span className="text-red-600">Are you sure?</span>
+          <button
+            onClick={() => handleClearData(type)}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Confirm
+          </button>
+          <button
+            onClick={() => setConfirmAction('')}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirmAction(type)}
+          className="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
+        >
+          <Trash2 className="h-5 w-5 mr-2" />
+          Clear {title.split(' ')[1]}
+        </button>
+      )}
     </div>
   );
 }

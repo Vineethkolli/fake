@@ -8,26 +8,25 @@ function Sidebar({ isOpen, onNavigate }) {
 
   const links = [
     { to: '/', icon: Home, label: 'Home' },
-    { to: '/profile', icon: User, label: 'Profile' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/income', icon: IndianRupee, label: 'Income' },
     { to: '/expense', icon: IndianRupee, label: 'Expense' },
+    { to: '/profile', icon: User, label: 'Profile' },
     { to: '/pay-online', icon: CreditCard, label: 'Pay Online' },
     { to: '/notifier', icon: Bell, label: 'Notifications' },
     { to: '/settings', icon: Settings, label: 'Settings' },
-    // Show Users only for developers
     ...(user?.role === 'developer' ? [
-      { to: '/users', icon: Users, label: 'Users' },
-      { to: '/developer-options', icon: Terminal, label: 'Developer Options' }
+      { to: '/users', icon: Users, label: 'Users' }
     ] : []),
-    // Show Verification for developers and financiers
     ...(user?.role === 'developer' || user?.role === 'financier' ? [
       { to: '/verification', icon: CheckSquare, label: 'Verification' }
     ] : []),
-    // Show Recycle Bin for both developers and financiers
     ...(user?.role === 'developer' || user?.role === 'financier' ? [
       { to: '/recycle-bin', icon: Trash2, label: 'Recycle Bin' }
-    ] : [])
+    ] : []),
+    ...(user?.role === 'developer' ? [
+      { to: '/developer-options', icon: Terminal, label: 'Developer Options' }
+    ] : []),
   ];
 
   const handleClick = () => {
@@ -37,25 +36,28 @@ function Sidebar({ isOpen, onNavigate }) {
   };
 
   return (
-    <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white shadow-lg transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 z-10`}>
-      <div className="w-64 h-full flex flex-col">
+    <div className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white shadow-lg transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 z-10 overflow-y-auto`}>
+      <div className="w-60 h-full flex flex-col">
         <nav className="flex-1 px-2 py-4 space-y-1">
-          {links.map((link) => {
+          {links.map((link, index) => {
             const Icon = link.icon;
+            const isSeparator = [0, 3, 7].includes(index); // Indices after which to place separators
             return (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={handleClick}
-                className={`${
-                  location.pathname === link.to
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-              >
-                <Icon className="mr-3 h-6 w-6" />
-                {link.label}
-              </Link>
+              <div key={link.to}>
+                <Link
+                  to={link.to}
+                  onClick={handleClick}
+                  className={`${
+                    location.pathname === link.to
+                      ? 'bg-gray-200 text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                >
+                  <Icon className="mr-3 h-6 w-6" />
+                  {link.label}
+                </Link>
+                {isSeparator && <hr className="my-1 border-t border-gray-300" />}
+              </div>
             );
           })}
         </nav>

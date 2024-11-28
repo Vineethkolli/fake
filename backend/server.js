@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import webpush from 'web-push';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
@@ -20,6 +22,8 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Socket.IO setup with CORS
 const io = new Server(httpServer, {
@@ -50,19 +54,30 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Serve static files
+app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('join', (userId) => {
-    socket.join(userId);
-    console.log(`User ${userId} joined their room`);
+    if (userId) {
+      socket.join(userId);
+      console.log(`User ${userId} joined their room`);
+    }
+  });
+
+  socket.on('notify', (data) => {
+    const { userId, notification } = data;
+    io.to(userId).emit('notification', notification);
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
 });
+
 
 // Make io available in routes
 app.set('io', io);

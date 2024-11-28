@@ -1,7 +1,6 @@
 import Income from '../models/Income.js';
-import Expense from '../models/Expense.js';
+import Payment from '../models/Payment.js'; // Assuming you have a Payment model for handling UPI payments
 import IncomeLog from '../models/IncomeLog.js';
-import ExpenseLog from '../models/ExpenseLog.js';
 
 export const verificationController = {
   // Get verification data
@@ -10,22 +9,23 @@ export const verificationController = {
       const { type } = req.params;
       const { verifyLog } = req.query;
 
-      let query = { verifyLog };
-      let data;
+      let query = {};
+      if (verifyLog) {
+        query.verifyLog = verifyLog;
+      }
 
+      let data;
       if (type === 'income') {
-        data = await Income.find(query)
-          .sort({ createdAt: -1 });
-      } else if (type === 'expense') {
-        data = await Expense.find(query)
-          .sort({ createdAt: -1 });
+        data = await Income.find(query).sort({ createdAt: -1 });
+      } else if (type === 'payment') {
+        data = await Payment.find(query).sort({ createdAt: -1 });
       } else {
         return res.status(400).json({ message: 'Invalid type specified' });
       }
 
       res.json(data);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch verification data' });
+      res.status(500).json({ message: 'Failed to fetch verification data', error });
     }
   },
 
@@ -33,18 +33,16 @@ export const verificationController = {
   updateVerificationStatus: async (req, res) => {
     try {
       const { type, id } = req.params;
-      const { verifyLog, registerId } = req.body;
+      const { verifyLog, registerId, belongsTo } = req.body;
 
       let item;
       let Model;
-      let LogModel;
+      let logData = {};
 
-      if (type === 'income') {
+      if (type === 'payment') {
+        Model = Payment;
+      } else if (type === 'income') {
         Model = Income;
-        LogModel = IncomeLog;
-      } else if (type === 'expense') {
-        Model = Expense;
-        LogModel = ExpenseLog;
       } else {
         return res.status(400).json({ message: 'Invalid type specified' });
       }
@@ -54,28 +52,45 @@ export const verificationController = {
         return res.status(404).json({ message: `${type} not found` });
       }
 
-      // If status is changing to rejected, move to recycle bin
-      if (verifyLog === 'rejected') {
-        item.isDeleted = true;
-        item.deletedAt = new Date();
-        item.deletedBy = registerId;
+      // Update status and handle specific logic based on verification
+      if (verifyLog === 'verified') {
+        item.transactionStatus = 'successful';
+        item.status = 'verified';
+
+        if (type === 'payment') {
+          // Add verified payment to Income
+          const incomeData = {
+            name: item.name,
+            amount: item.amount,
+            registerId: item.registerId,
+            paymentMode: 'Web App',
+            status: 'paid',
+            belongsTo: belongsTo || 'Unassigned',
+          };
+          await Income.create(incomeData);
+        }
+      } else if (verifyLog === 'rejected') {
+        item.transactionStatus = 'failed';
+        item.status = 'rejected';
+      } else {
+        item.transactionStatus = 'pending';
+        item.status = 'not verified';
       }
 
-      // Create log entry
-      await LogModel.create({
+      // Log the verification change
+      logData = {
         [`${type}Id`]: item._id,
         registerId,
         originalData: item.toObject(),
-        updatedData: { ...item.toObject(), verifyLog }
-      });
+        updatedData: { ...item.toObject(), verifyLog, transactionStatus: item.transactionStatus },
+      };
 
-      // Update verification status
-      item.verifyLog = verifyLog;
+      await IncomeLog.create(logData);
       await item.save();
 
       res.json({ message: 'Verification status updated successfully' });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to update verification status' });
+      res.status(500).json({ message: 'Failed to update verification status', error });
     }
-  }
+  },
 };

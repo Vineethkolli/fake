@@ -6,11 +6,11 @@ import Notification from '../models/Notification.js';
 
 const router = express.Router();
 
-// Generate VAPID keys - in production these should be in .env
+// Generate VAPID keys
 const vapidKeys = webpush.generateVAPIDKeys();
 
 webpush.setVapidDetails(
-  'mailto:your-email@domain.com',
+  'mailto:example@yourdomain.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -39,6 +39,78 @@ router.post('/subscribe', auth, async (req, res) => {
     res.status(500).json({ message: 'Failed to subscribe to notifications' });
   }
 });
+
+// Adjustments: Removed duplicate /send endpoint and handled subscription errors.
+
+router.post('/send', auth, checkRole(['admin', 'developer']), async (req, res) => {
+  try {
+    const { title, body, target, registerId } = req.body;
+    let recipients = [];
+
+    // Determine recipients
+    switch (target) {
+      case 'registerId':
+        const user = await User.findOne({ registerId });
+        if (user) recipients = [user._id];
+        break;
+      case 'allUsers':
+      case 'allDevelopers':
+      case 'allAdmins':
+      case 'allFinanciers':
+      case 'all':
+        const roles = {
+          allUsers: 'user',
+          allDevelopers: 'developer',
+          allAdmins: 'admin',
+          allFinanciers: 'financier',
+          all: undefined
+        };
+        const query = roles[target]
+          ? { role: roles[target], notificationsEnabled: true }
+          : { notificationsEnabled: true };
+        const users = await User.find(query);
+        recipients = users.map((user) => user._id);
+        break;
+    }
+
+    // Create notification in database
+    const notification = await Notification.create({
+      title,
+      body,
+      sender: req.user.id,
+      recipients,
+      isGlobal: target === 'all'
+    });
+
+    // Push notification
+    const subscribedUsers = await User.find({
+      _id: { $in: recipients },
+      pushSubscription: { $exists: true, $ne: null }
+    });
+
+    const payload = JSON.stringify({ title, body, icon: '/logo.png' });
+    const notifications = subscribedUsers.map(async (user) => {
+      try {
+        await webpush.sendNotification(user.pushSubscription, payload);
+      } catch (error) {
+        if (error.statusCode === 410) {
+          user.pushSubscription = null;
+          user.notificationsEnabled = false;
+          await user.save();
+        } else {
+          console.error('Push notification error:', error);
+        }
+      }
+    });
+
+    await Promise.all(notifications);
+    res.json({ message: 'Notification sent successfully' });
+  } catch (error) {
+    console.error('Notification error:', error);
+    res.status(500).json({ message: 'Failed to send notification' });
+  }
+});
+
 
 // Unsubscribe from push notifications
 router.post('/unsubscribe', auth, async (req, res) => {
